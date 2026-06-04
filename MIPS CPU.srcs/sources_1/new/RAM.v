@@ -1,58 +1,44 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2021/06/10 19:21:45
-// Design Name: 
 // Module Name: RAM
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+// Description: 数据存储器 (随机存取存储器)
+//              支持读写操作，按字节编址
+// Size: 128 字节
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module RAM(
-    input             MemRd,
-    input             MemWr,
-    input      [31:0] addr,
-    input      [31:0] data_in,
-    output reg [31:0] data_out,
-
-    // to be clear
-    input DBDataSrc,
-    output reg [31:0] DB
+    input             MemRd,      // 读使能
+    input             MemWr,      // 写使能
+    input      [31:0] addr,       // 地址
+    input      [31:0] data_in,    // 写入数据
+    output reg [31:0] data_out,   // 读出数据
+    input             DBDataSrc,  // 数据总线来源选择
+    output reg [31:0] DB          // 数据总线输出
 );
-    reg [7:0] ram [127:0];
 
+    reg [7:0] ram [127:0];  // 128 字节存储空间
+
+    // 初始化 RAM 为 0
     integer i;
     initial begin
-        for (i = 0; i < 128; i = i + 1) begin
+        for (i = 0; i < 128; i = i + 1)
             ram[i] = 8'd0;
-        end
     end
 
-    always @(MemRd or addr or DBDataSrc) begin
-        if (MemRd) begin
+    // 读操作
+    always @(*) begin
+        if (MemRd)
             data_out = {ram[addr+3], ram[addr+2], ram[addr+1], ram[addr]};
-        end
-        else begin
+        else
             data_out = 32'bz;
-        end
+        // 数据总线选择
         DB = (DBDataSrc == 1'b1) ? data_out : addr;
     end
 
-    always @(MemWr, addr) begin
-        if (MemWr == 1'b1) begin
+    // 写操作
+    always @(*) begin
+        if (MemWr)
             {ram[addr+3], ram[addr+2], ram[addr+1], ram[addr]} = data_in;
-        end
     end
+
 endmodule

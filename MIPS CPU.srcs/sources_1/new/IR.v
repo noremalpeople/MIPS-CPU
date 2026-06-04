@@ -1,38 +1,20 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2021/06/13 17:02:40
-// Design Name: 
 // Module Name: IR
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+// Description: 指令寄存器 (Instruction Register)
+//              在时钟下降沿，当 IRWr 为高时锁存新指令
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module IR(
-    input             clk,
-    input             IRWr,
-    input      [31:0] next_inst,
-    output reg [31:0] cur_inst
+    input             clk,         // 时钟
+    input             IRWr,        // 写使能
+    input      [31:0] next_inst,   // 新指令输入
+    output reg [31:0] cur_inst     // 当前锁存的指令
 );
+
     always @(negedge clk) begin
-        if (IRWr) begin
+        if (IRWr)
             cur_inst <= next_inst;
-        end
-        else begin
-            cur_inst <= cur_inst;
-        end
     end
 
 endmodule

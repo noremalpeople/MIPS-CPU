@@ -1,84 +1,61 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2021/06/19 15:46:58
-// Design Name: 
 // Module Name: MultiCycleCPUDesign_tb
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+// Description: MIPS 多周期 CPU 测试平台
+//              生成时钟和复位信号，实例化 CPU 并观察运行状态
+// Usage: 在 Vivado 中运行仿真，观察波形
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module MultiCycleCPUDesign_tb;
+
+    // 时钟和复位信号
     reg clk, rst;
 
+    // 复位信号: 前 50ns 为高电平
     initial begin
         rst = 1;
         #50 rst = 0;
     end
 
+    // 时钟信号: 周期 10ns (100MHz)
     initial begin
         clk = 0;
-        forever begin
-            #5 clk = ~clk;
-        end
+        forever #5 clk = ~clk;
     end
 
-    wire [31:0] curPC;
-    wire [31:0] nextPC;
-    wire [31:0] inst;
-    wire [31:0] IRinst;
-    wire [5:0] op, func;
-    wire [4:0] rs, rt, rd;
-    wire [31:0] DB;
-    wire [31:0] dataDB;
+    // CPU 输出信号连线
+    wire [31:0] curPC, nextPC, inst, IRinst;
+    wire [5:0]  op, func;
+    wire [4:0]  rs, rt, rd;
+    wire [31:0] DB, dataDB;
     wire [31:0] A, dataA, B, dataB;
-    wire [31:0] result;
-    wire [31:0] dataResult;
-    wire [1:0] PCSource;
-    wire ZeroFlag;
-    wire PCWr;
-    wire IsRd;
-    wire [1:0] RegDst;
-    wire RegWr;
-    wire ALUSrcA;
-    wire ALUSrcB;
-    wire [3:0] ALUop;
-    wire MemRd, MemWr;
-    wire DBDataSrc;
-    wire WrRegDSrc;
-    wire [31:0] Rw;
-    wire [2:0] cur_state;
-    wire [31:0] extend;
+    wire [31:0] result, dataResult;
+    wire [1:0]  PCSource, RegDst;
+    wire        ZeroFlag, PCWr, IsRd;
+    wire        RegWr, ALUSrcA, ALUSrcB;
+    wire [3:0]  ALUop;
+    wire        MemRd, MemWr, DBDataSrc, WrRegDSrc;
+    wire [31:0] Rw, extend;
+    wire [2:0]  cur_state;
 
+    // 实例化 CPU
     CPU_main CPU(
-        .clk(clk), 
+        .clk(clk),
         .rst(rst),
         .curPC(curPC),
         .nextPC(nextPC),
         .inst(inst),
         .IRinst(IRinst),
-        .op(op), 
+        .op(op),
         .func(func),
-        .rs(rs), 
-        .rt(rt), 
+        .rs(rs),
+        .rt(rt),
         .rd(rd),
         .DB(DB),
         .dataDB(dataDB),
-        .A(A), 
-        .dataA(dataA), 
-        .B(B), 
+        .A(A),
+        .dataA(dataA),
+        .B(B),
         .dataB(dataB),
         .result(result),
         .dataResult(dataResult),
@@ -99,4 +76,5 @@ module MultiCycleCPUDesign_tb;
         .cur_state(cur_state),
         .extend(extend)
     );
+
 endmodule

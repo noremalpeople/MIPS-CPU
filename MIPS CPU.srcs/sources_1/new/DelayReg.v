@@ -1,31 +1,18 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2021/06/19 15:25:11
-// Design Name: 
 // Module Name: DelayReg
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+// Description: 延迟寄存器
+//              在时钟下降沿锁存输入数据，用于多周期 CPU 的数据暂存
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module DelayReg(
-    input             clk,
-    input      [31:0] IData,
-    output reg [31:0] OData
+    input             clk,       // 时钟
+    input      [31:0] IData,     // 输入数据
+    output reg [31:0] OData      // 输出数据
 );
+
     always @(negedge clk) begin
         OData <= IData;
     end
+
 endmodule

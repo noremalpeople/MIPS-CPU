@@ -1,9 +1,14 @@
-# Vivado generated files
+# Vivado 生成的文件
 MIPS CPU.cache/
 MIPS CPU.hw/
 MIPS CPU.ip_user_files/
 MIPS CPU.runs/
 MIPS CPU.sim/
+*.dcp
 
-# Claude files
+# Claude 文件
 .claude/
+
+# 操作系统文件
+.DS_Store
+Thumbs.db

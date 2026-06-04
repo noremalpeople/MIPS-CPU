@@ -1,62 +1,53 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 2021/06/15 20:55:33
-// Design Name: 
 // Module Name: CPU_main
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+// Description: MIPS 多周期 CPU 顶层模块
+//              连接所有子模块，构成完整的数据通路
+// Architecture: 多周期实现，包含 IF/ID/EXE/MEM/WB 五个阶段
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module CPU_main(
-    input clk,
-    input rst,
-    output [31:0] curPC,
-    output [31:0] nextPC,
-    output [31:0] inst,
-    output [31:0] IRinst,
-    output [5:0] op, func,
-    output [4:0] rs, rt, rd,
-    output [31:0] DB,
-    output [31:0] dataDB,
-    output [31:0] A, dataA, B, dataB,
-    output [31:0] result,
-    output [31:0] dataResult,
-    output [1:0] PCSource,
-    output ZeroFlag,
-    output PCWr,
-    output IsRd,
-    output [1:0] RegDst,
-    output RegWr,
-    output ALUSrcA,
-    output ALUSrcB,
-    output [3:0] ALUop,
-    output MemRd, MemWr,
-    output DBDataSrc,
-    output WrRegDSrc,
-    output [31:0] Rw,
-
-    output [31:0] extend,
-    output [2:0] cur_state
+    input         clk,
+    input         rst,
+    // 调试输出信号
+    output [31:0] curPC,        // 当前 PC 值
+    output [31:0] nextPC,       // 下一 PC 值
+    output [31:0] inst,         // 从 ROM 读取的指令
+    output [31:0] IRinst,       // 指令寄存器中的指令
+    output [5:0]  op, func,     // 操作码和功能码
+    output [4:0]  rs, rt, rd,   // 寄存器地址
+    output [31:0] DB,           // 数据总线
+    output [31:0] dataDB,       // 数据总线延迟值
+    output [31:0] A, dataA, B, dataB,  // 寄存器读出数据及延迟值
+    output [31:0] result,       // ALU 运算结果
+    output [31:0] dataResult,   // ALU 结果延迟值
+    output [1:0]  PCSource,     // PC 来源选择
+    output        ZeroFlag,     // ALU 零标志
+    output        PCWr,         // PC 写使能
+    output        IsRd,         // ROM 读使能
+    output [1:0]  RegDst,       // 写寄存器地址选择
+    output        RegWr,        // 寄存器写使能
+    output        ALUSrcA,      // ALU 操作数 A 来源
+    output        ALUSrcB,      // ALU 操作数 B 来源
+    output [3:0]  ALUop,        // ALU 操作类型
+    output        MemRd, MemWr, // 存储器读/写使能
+    output        DBDataSrc,    // 数据总线来源选择
+    output        WrRegDSrc,    // 写寄存器数据来源
+    output [31:0] Rw,           // 写寄存器地址
+    output [31:0] extend,       // 符号扩展后的立即数
+    output [2:0]  cur_state     // 当前状态机状态
 );
 
+    // 内部连线
     wire [31:0] DataOut;
-    wire [4:0] sa;
+    wire [4:0]  sa;
     wire [15:0] imm16;
     wire [25:0] addr;
+    wire        IRWr, ExtType;
 
+    //=========================================
+    // 控制单元 - 生成所有控制信号
+    //=========================================
     ControlUnit control_unit(
         .clk(clk),
         .rst(rst),
@@ -78,9 +69,11 @@ module CPU_main(
         .WrRegDSrc(WrRegDSrc),
         .DBDataSrc(DBDataSrc),
         .cur_state(cur_state)
-    ); 
+    );
 
-    // PC 
+    //=========================================
+    // PC 模块 - 程序计数器
+    //=========================================
     PC pc(
         .clk(clk),
         .rst(rst),
@@ -89,6 +82,9 @@ module CPU_main(
         .cur_PC(curPC)
     );
 
+    //=========================================
+    // PC_next 模块 - 计算下一 PC 值
+    //=========================================
     PC_next pc_next(
         .rst(rst),
         .cur_PC(curPC),
@@ -99,14 +95,18 @@ module CPU_main(
         .next_PC(nextPC)
     );
 
-    // ROM
+    //=========================================
+    // ROM 模块 - 指令存储器
+    //=========================================
     ROM rom(
         .IsRd(IsRd),
         .addr(curPC),
         .DataOut(inst)
     );
 
-    // IR
+    //=========================================
+    // IR 模块 - 指令寄存器
+    //=========================================
     IR ir(
         .clk(clk),
         .IRWr(IRWr),
@@ -114,7 +114,9 @@ module CPU_main(
         .cur_inst(IRinst)
     );
 
-    // InstSplit
+    //=========================================
+    // InstSplit 模块 - 指令字段分割
+    //=========================================
     InstSplit inst_split(
         .inst(IRinst),
         .op(op),
@@ -127,14 +129,18 @@ module CPU_main(
         .addr(addr)
     );
 
-    // Extend
+    //=========================================
+    // Extend 模块 - 立即数符号/零扩展
+    //=========================================
     Extend extend16to32(
         .imm16(imm16),
         .ExtType(ExtType),
         .imm32(extend)
     );
 
-    // RegFile
+    //=========================================
+    // RegFile 模块 - 32 个 32 位寄存器
+    //=========================================
     RegFile regfile(
         .clk(clk),
         .RegWr(RegWr),
@@ -148,7 +154,9 @@ module CPU_main(
         .Rw(Rw)
     );
 
-    // ALU
+    //=========================================
+    // ALU 模块 - 算术逻辑单元
+    //=========================================
     ALU alu(
         .ALUSrcA(ALUSrcA),
         .ALUSrcB(ALUSrcB),
@@ -161,7 +169,9 @@ module CPU_main(
         .DataOut(result)
     );
 
-    // RAM
+    //=========================================
+    // RAM 模块 - 数据存储器
+    //=========================================
     RAM ram(
         .MemRd(MemRd),
         .MemWr(MemWr),
@@ -172,7 +182,9 @@ module CPU_main(
         .DBDataSrc(DBDataSrc)
     );
 
-    // Delay Register
+    //=========================================
+    // 延迟寄存器 - 用于多周期数据暂存
+    //=========================================
     DelayReg ADR(
         .clk(clk),
         .IData(A),
@@ -196,4 +208,5 @@ module CPU_main(
         .IData(DB),
         .OData(dataDB)
     );
+
 endmodule
