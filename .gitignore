@@ -1,0 +1,9 @@
+# Vivado generated files
+MIPS CPU.cache/
+MIPS CPU.hw/
+MIPS CPU.ip_user_files/
+MIPS CPU.runs/
+MIPS CPU.sim/
+
+# Claude files
+.claude/
